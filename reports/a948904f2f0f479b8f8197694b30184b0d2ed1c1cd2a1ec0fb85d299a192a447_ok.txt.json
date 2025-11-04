@@ -1,0 +1,16 @@
+{
+  "name": "ok.txt",
+  "path": "/home/vibhor/Downloads/ok.txt",
+  "sha256": "a948904f2f0f479b8f8197694b30184b0d2ed1c1cd2a1ec0fb85d299a192a447",
+  "mime": "text/plain",
+  "timestamp": 1762225498.0124934,
+  "clamav": {
+    "found": false,
+    "output": "/home/vibhor/Downloads/ok.txt: OK"
+  },
+  "yara": {
+    "hits": [],
+    "cmd": "yara /home/vibhor/projects/secure-scan/yara_rules/demo_rules.yar /home/vibhor/Downloads/ok.txt"
+  },
+  "verdict": "allow"
+}

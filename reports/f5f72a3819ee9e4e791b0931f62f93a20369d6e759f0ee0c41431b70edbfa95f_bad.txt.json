@@ -1,0 +1,18 @@
+{
+  "name": "bad.txt",
+  "path": "/home/vibhor/Downloads/bad.txt",
+  "sha256": "f5f72a3819ee9e4e791b0931f62f93a20369d6e759f0ee0c41431b70edbfa95f",
+  "mime": "text/plain",
+  "timestamp": 1762225552.3947544,
+  "clamav": {
+    "found": false,
+    "output": "/home/vibhor/Downloads/bad.txt: OK"
+  },
+  "yara": {
+    "hits": [
+      "DemoBadFile /home/vibhor/Downloads/bad.txt"
+    ],
+    "cmd": "yara /home/vibhor/projects/secure-scan/yara_rules/demo_rules.yar /home/vibhor/Downloads/bad.txt"
+  },
+  "verdict": "quarantine"
+}
