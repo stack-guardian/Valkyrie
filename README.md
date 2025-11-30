@@ -56,7 +56,7 @@ sudo freshclam
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/valkyrie.git
+   git clone https://github.com/vibhxr69/valkyrie.git
    cd valkyrie
    ```
 
