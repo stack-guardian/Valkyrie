@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+.venv/
+.env
+
+# Logs and runtime artifacts
+logs/
+reports/
+processed/
+quarantine/
+*.pid
+*.log
+*.bak
+
+# Editor / tooling
+.DS_Store
+*.swp
+*.swo
+.idea/
+.vscode/
+
+# Local config
+config/settings.json
+
+# Cache
+*.sqlite3
+
+# Local AI metadata
+.claude/
+.claude-flow/
+.swarm/

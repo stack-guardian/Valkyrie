@@ -1,0 +1,120 @@
+#!/bin/bash
+# Valkyrie CLI - Simple command interface
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+case "${1:-help}" in
+    start)
+        "$SCRIPT_DIR/start_valkyrie.sh" start
+        ;;
+    stop)
+        "$SCRIPT_DIR/start_valkyrie.sh" stop
+        ;;
+    restart)
+        "$SCRIPT_DIR/start_valkyrie.sh" restart
+        ;;
+    status)
+        "$SCRIPT_DIR/start_valkyrie.sh" status
+        ;;
+    logs)
+        if [ -d "$SCRIPT_DIR/logs" ]; then
+            echo "=== Watcher Log (last 50 lines) ==="
+            tail -50 "$SCRIPT_DIR/logs/watcher.log" 2>/dev/null || echo "No watcher log found"
+            echo
+            echo "=== Dashboard Log (last 50 lines) ==="
+            tail -50 "$SCRIPT_DIR/logs/dashboard.log" 2>/dev/null || echo "No dashboard log found"
+        else
+            echo "No logs directory found. Start Valkyrie first."
+        fi
+        ;;
+    tail)
+        if [ -d "$SCRIPT_DIR/logs" ]; then
+            echo "Following logs (Ctrl+C to stop)..."
+            tail -f "$SCRIPT_DIR/logs/watcher.log" "$SCRIPT_DIR/logs/dashboard.log"
+        else
+            echo "No logs directory found. Start Valkyrie first."
+        fi
+        ;;
+    scan)
+        if [ -z "$2" ]; then
+            echo "Usage: $0 scan <file>"
+            exit 1
+        fi
+        if [ ! -f "$2" ]; then
+            echo "Error: File not found: $2"
+            exit 1
+        fi
+        echo "Scanning: $2"
+        if [ -f "$SCRIPT_DIR/watcher/analysis_sandboxed.py" ]; then
+            python3 "$SCRIPT_DIR/watcher/analysis_sandboxed.py" "$2"
+        else
+            python3 "$SCRIPT_DIR/watcher/analysis.py" "$2"
+        fi
+        ;;
+    dashboard)
+        if command -v xdg-open &> /dev/null; then
+            xdg-open "http://127.0.0.1:5000"
+        else
+            echo "Open: http://127.0.0.1:5000"
+        fi
+        ;;
+    test)
+        echo "Running security validation..."
+        if [ -f "$SCRIPT_DIR/test_security.sh" ]; then
+            "$SCRIPT_DIR/test_security.sh"
+        else
+            echo "test_security.sh not found"
+            exit 1
+        fi
+        ;;
+    quarantine)
+        echo "Quarantined files:"
+        ls -lh "$SCRIPT_DIR/quarantine/" 2>/dev/null || echo "No quarantined files"
+        ;;
+    reports)
+        echo "Recent reports:"
+        ls -lt "$SCRIPT_DIR/reports/" | head -20
+        ;;
+    clean)
+        echo "Cleaning old reports and processed files..."
+        read -p "Delete reports older than 30 days? (y/N) " -n 1 -r
+        echo
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            find "$SCRIPT_DIR/reports/" -name "*.json" -mtime +30 -delete 2>/dev/null
+            find "$SCRIPT_DIR/processed/" -mtime +30 -delete 2>/dev/null
+            echo "✓ Cleanup complete"
+        fi
+        ;;
+    help|--help|-h)
+        echo "Valkyrie File Scanner - Command Interface"
+        echo
+        echo "Usage: $0 <command> [options]"
+        echo
+        echo "Commands:"
+        echo "  start       Start Valkyrie services (watcher + dashboard)"
+        echo "  stop        Stop all Valkyrie services"
+        echo "  restart     Restart all services"
+        echo "  status      Show service status"
+        echo "  logs        Show recent logs"
+        echo "  tail        Follow logs in real-time"
+        echo "  scan <file> Scan a specific file"
+        echo "  dashboard   Open dashboard in browser"
+        echo "  test        Run security validation"
+        echo "  quarantine  List quarantined files"
+        echo "  reports     List recent reports"
+        echo "  clean       Clean old reports and processed files"
+        echo "  help        Show this help"
+        echo
+        echo "Examples:"
+        echo "  $0 start              # Start Valkyrie"
+        echo "  $0 scan /tmp/file.exe # Scan a file"
+        echo "  $0 tail               # Watch logs"
+        echo "  $0 quarantine         # See threats"
+        echo
+        ;;
+    *)
+        echo "Unknown command: $1"
+        echo "Use '$0 help' for usage information"
+        exit 1
+        ;;
+esac

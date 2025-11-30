@@ -1,0 +1,96 @@
+# Valkyrie File Security Scanner - Docker Compose
+#
+# Use this to run Valkyrie with all services in containers.
+
+version: '3.8'
+
+services:
+  valkyrie:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: valkyrie-scanner
+    ports:
+      - "5000:5000"
+    volumes:
+      # Mount watch directory (change to your preferred location)
+      - ./watch:/watch:ro
+
+      # Mount persistent storage
+      - ./reports:/app/reports
+      - ./quarantine:/app/quarantine
+      - ./processed:/app/processed
+      - ./logs:/app/logs
+
+      # Mount configuration
+      - ./config/valkyrie.yaml:/app/config/valkyrie.yaml:ro
+
+      # Mount YARA rules
+      - ./yara_rules:/app/yara_rules:ro
+
+    environment:
+      - PYTHONUNBUFFERED=1
+      - VALKYRIE_CONFIG=/app/config/valkyrie.yaml
+
+    # Restart policy
+    restart: unless-stopped
+
+    # Health check
+    healthcheck:
+      test: ["CMD", "python", "-m", "valkyrie.cli", "status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+    # Logging
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Optional: File watcher as separate service
+  valkyrie-watcher:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: valkyrie-watcher
+    command: ["python", "watcher/watcher.py"]
+    volumes:
+      # Watch the same directory
+      - ./watch:/watch:ro
+
+      # Mount persistent storage
+      - ./reports:/app/reports
+      - ./quarantine:/app/quarantine
+      - ./processed:/app/processed
+      - ./logs:/app/logs
+
+      # Mount configuration
+      - ./config/valkyrie.yaml:/app/config/valkyrie.yaml:ro
+
+      # Mount YARA rules
+      - ./yara_rules:/app/yara_rules:ro
+
+    environment:
+      - PYTHONUNBUFFERED=1
+      - VALKYRIE_CONFIG=/app/config/valkyrie.yaml
+
+    depends_on:
+      valkyrie:
+        condition: service_healthy
+
+    restart: unless-stopped
+
+    # Logging
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+# Network (optional)
+networks:
+  default:
+    name: valkyrie-network

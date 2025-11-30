@@ -1,0 +1,147 @@
+# Valkyrie Configuration File
+# This file controls all aspects of the Valkyrie file security scanner
+
+# Watcher Configuration
+watcher:
+  # Directory to monitor for new files
+  watch_path: ~/Downloads
+
+  # Recursively monitor subdirectories
+  recursive: false
+
+  # File size limit in MB (skip files larger than this)
+  max_file_size_mb: 500
+
+  # Time to wait for file writes to complete (seconds)
+  write_delay: 0.5
+
+# Analysis Configuration
+analysis:
+  # Timeout for scan operations (seconds)
+  timeout: 30
+
+  # Enable/disable specific scan engines
+  engines:
+    clamav:
+      enabled: true
+      use_daemon: false  # if true, use clamd socket
+      socket_path: /var/run/clamav/clamd.ctl
+      timeout: 30
+
+    yara:
+      enabled: true
+      rules_directory: yara_rules
+      timeout: 15
+
+  # Heuristic analysis settings
+  heuristics:
+    entropy:
+      enabled: true
+      suspicious_threshold: 7.2
+      high_risk_threshold: 7.8
+
+    packer_detection:
+      enabled: true
+
+    archive_inspection:
+      enabled: true
+      max_depth: 3
+      max_expansion_ratio: 100  # 100:1 expansion ratio limit
+      password_protected_flag: true
+
+    file_type_validation:
+      enabled: true
+      check_double_extensions: true
+      check_hidden_extensions: true
+
+# Scoring Configuration
+scoring:
+  # Custom scoring weights (0-100 scale)
+  weights:
+    clamav_signature: 100
+    yara_critical: 90
+    yara_high: 70
+    yara_medium: 40
+    yara_low: 20
+    entropy_high: 30
+    entropy_suspicious: 15
+    packer_detected: 25
+    file_type_mismatch: 20
+    archive_bomb: 50
+    suspicious_imports: 15
+
+  # Verdict thresholds
+  thresholds:
+    quarantine: 80
+    review: 40
+
+# Output Configuration
+output:
+  # Directory paths
+  directories:
+    reports: reports
+    quarantine: quarantine
+    processed: processed
+    logs: logs
+
+  # Report retention
+  retention:
+    # Keep reports for N days (0 = keep forever)
+    reports_days: 30
+    # Compress reports older than N days
+    compress_days: 7
+    # Keep quarantine files for N days
+    quarantine_days: 90
+    # Max number of report files (0 = no limit)
+    max_reports: 0
+
+# Dashboard Configuration
+dashboard:
+  host: 127.0.0.1
+  port: 5000
+  debug: false
+
+  # Pagination
+  reports_per_page: 50
+
+# Logging Configuration
+logging:
+  level: INFO  # DEBUG, INFO, WARNING, ERROR, CRITICAL
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: logs/valkyrie.log
+  max_size_mb: 10
+  backup_count: 10
+
+# Notification Configuration
+notifications:
+  desktop:
+    enabled: true
+    urgency: normal  # normal, critical, low
+
+  # Webhook notifications (optional)
+  webhook:
+    enabled: false
+    url: ""
+    on_detection_only: true
+
+# Security Configuration
+security:
+  # Quarantine directory permissions (octal)
+  quarantine_permissions: 0o700
+
+  # Validate file paths to prevent directory traversal
+  validate_paths: true
+
+  # Safe filename sanitization
+  sanitize_filenames: true
+
+# Performance Configuration
+performance:
+  # Thread pool size for concurrent scans
+  max_workers: 4
+
+  # Enable caching of scan results
+  enable_cache: true
+
+  # Cache expiry in seconds
+  cache_ttl: 3600
